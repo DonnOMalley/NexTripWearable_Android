@@ -1,4 +1,16 @@
 NexTripWearable_Android
 =======================
+Android Application and provider for the Tizen Wearable App
 
-Android Application and provider for the Tizen App
+*Author: [Donn O'Malley]*
+
+Description
+----------
+> Leverages the NexTrip Web Service API to display routes and allow searching by stop id. Favorite stops can be saved which are made available to the wearable consumer application.
+
+Revisions:
+----------
+- 1.0
+> Initial Release
+
+[Donn O'Malley]:http://donnomalley.omalleyland.com

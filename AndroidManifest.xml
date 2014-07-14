@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.omalleyland.nextripwearable" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+
+
+
+
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <uses-permission android:name="com.samsung.accessory.permission.ACCESSORY_FRAMEWORK" />
+
+    <uses-permission android:name="com.samsung.wmanager.APP" />
+
+    <uses-permission android:name="com.samsung.wmanager.ENABLE_NOTIFICATION" />
+    <uses-sdk android:targetSdkVersion="19" android:minSdkVersion="15"/>
+
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name">
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".FavoriteDeparture" android:label="Next Departure" android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.omalleyland.nextripwearable.MainActivity" />
+        </activity>
+        <activity
+            android:name=".Direction"
+            android:label="@string/title_activity_direction"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.omalleyland.nextripwearable.MainActivity" />
+        </activity>
+
+        <service android:name="com.omalleyland.nextripwearable.AccessoryProviderService" >
+
+        </service>
+
+        <receiver android:name="com.samsung.android.sdk.accessory.ServiceConnectionIndicationBroadcastReceiver" >
+
+            <intent-filter>
+
+                <action android:name="android.accessory.service.action.ACCESSORY_SERVICE_CONNECTION_IND" />
+
+            </intent-filter>
+
+        </receiver>
+
+        <receiver android:name="com.samsung.android.sdk.accessory.RegisterUponInstallReceiver" >
+
+            <intent-filter>
+
+                <action android:name="android.accessory.device.action.REGISTER_AFTER_INSTALL" />
+
+            </intent-filter>
+
+        </receiver>
+
+
+
+        <meta-data
+
+            android:name="AccessoryServicesLocation"
+
+            android:value="/res/xml/accessoryservices.xml" />
+
+    </application>
+
+</manifest>

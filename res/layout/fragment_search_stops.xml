@@ -1,0 +1,45 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.omalleyland.nextripwearable.SearchStops"
+    android:rowCount="4"
+    android:columnCount="4">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/searchLayout">
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/edtSearch"
+            android:singleLine="true"
+            android:textIsSelectable="false"
+            android:hint="Stop ID"
+            android:inputType="number"
+            android:selectAllOnFocus="true"
+            android:textSize="36dp" />
+
+        <ImageButton
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:id="@+id/btnSearch"
+            android:contentDescription="Search Button"
+            android:src="@android:drawable/ic_menu_search" />
+    </LinearLayout>
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lvResults"
+        android:layout_below="@+id/searchLayout"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>

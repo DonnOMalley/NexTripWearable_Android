@@ -28,7 +28,14 @@ public class DeparturesList extends ArrayAdapter<String> {
         LayoutInflater inflater = context.getLayoutInflater();
         View rowView = inflater.inflate(R.layout.fragment_departures, null, true);
         ((TextView) rowView.findViewById(R.id.txt)).setText(DepartureText[position]);
-        ((TextView) rowView.findViewById(R.id.tvStopDescription)).setText(StopDescription[position]);
+        if(position == 0) {
+	        ((TextView) rowView.findViewById(R.id.tvStopDescription)).setText(StopDescription[position]);
+        }
+        else {
+        	((TextView) rowView.findViewById(R.id.txt)).setTextSize(24);
+	        ((TextView) rowView.findViewById(R.id.tvStopDescription)).setVisibility(View.INVISIBLE);
+	        ((TextView) rowView.findViewById(R.id.tvStopDescription)).setHeight(0);
+        }
         return rowView;
     }
 }

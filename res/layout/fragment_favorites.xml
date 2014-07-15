@@ -19,13 +19,14 @@
             android:id="@+id/tvFavRouteId"
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:gravity="left|center_vertical"
-            android:text="21"
-            android:textSize="30dp"
+            android:layout_gravity="center|center_horizontal|center_vertical"
+            android:layout_toRightOf="@+id/imgFavIcon"
+            android:gravity="center_vertical|center_horizontal"
             android:singleLine="false"
-            android:textStyle="bold"
-            android:layout_toRightOf="@+id/imgFavIcon" />
+            android:text="21"
+            android:textAlignment="center"
+            android:textSize="30dp"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:orientation="vertical"

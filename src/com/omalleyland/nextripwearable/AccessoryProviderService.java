@@ -86,29 +86,6 @@ public class AccessoryProviderService extends SAAgent {
 				//Command is a Route/Direction/stop
 				new DeparturesRequest(mConnectionId).execute(new String(data));
 			}
-			
-			
-
-//			final String txt="<bookstore><book><title>Everyday Italian</title>" +
-//					"<author>Giada De Laurentiis</author>" +
-//					"<year>2005</year>" +
-//					"</book></bookstore>";
-//
-//final AccessoryProviderConnection uHandler = mConnectionsMap.get(Integer
-//		.parseInt(String.valueOf(mConnectionId)));
-//if(uHandler == null){
-//	Log.e(TAG,"Error, can not get AccessoryProviderConnection handler");
-//	return;
-//}
-//new Thread(new Runnable() {
-//	public void run() {
-//		try {
-//			uHandler.send(ACCESSORY_CHANNEL_ID, txt.getBytes());
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-//}).start();
 		}
 
 		@Override
@@ -298,18 +275,23 @@ public class AccessoryProviderService extends SAAgent {
                 NodeList nList = doc.getElementsByTagName("NexTripDeparture");
                 Log.d("NexTripWearable", Integer.toString(nList.getLength()));
                 if(nList.getLength() > 0) {
-                    DepartureText = new String[1];
-                    StopDescription = new String[1];
-                    for (int i = 0; i < 1; i++) { //Only get the First Departure Time
+                    DepartureText = new String[nList.getLength()];
+                    StopDescription = new String[nList.getLength()];
+
+                    String txt="<NextDeparture>";
+                    for (int i = 0; i < nList.getLength(); i++) { //Only get the First Departure Time
                         Node nNode = nList.item(i);
                         if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                             Element eElement = (Element) nNode;
                             DepartureText[i] = eElement.getElementsByTagName("DepartureText").item(0).getTextContent();
+
+                    		txt = txt + "<DepartureTime>" + DepartureText[i] + "</DepartureTime>";
                         }
                     }
                     
-                    final String txt="<NextDeparture><DepartureTime>" + DepartureText[0] + "</DepartureTime></NextDeparture>";
+                    txt = txt + "</NextDeparture>";
 
+                    final String resultXML = txt;
     				final AccessoryProviderConnection uHandler = mConnectionsMap.get(Integer.parseInt(String.valueOf(ConnID)));
     				if(uHandler == null){
     					Log.e(TAG,"Error, can not get AccessoryProviderConnection handler");
@@ -318,7 +300,7 @@ public class AccessoryProviderService extends SAAgent {
     				new Thread(new Runnable() {
     					public void run() {
     						try {
-    							uHandler.send(ACCESSORY_CHANNEL_ID, txt.getBytes());
+    							uHandler.send(ACCESSORY_CHANNEL_ID, resultXML.getBytes());
     						} catch (IOException e) {
     							e.printStackTrace();
     						}

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import org.apache.http.HttpEntity;
@@ -95,9 +96,9 @@ public class FavoriteDeparture extends Activity {
                 NodeList nList = doc.getElementsByTagName("NexTripDeparture");
                 Log.d("NexTripWearable", Integer.toString(nList.getLength()));
                 if(nList.getLength() > 0) {
-                    DepartureText = new String[1];
-                    StopDescription = new String[1];
-                    for (int i = 0; i < 1; i++) { //Only get the First Departure Time
+                    DepartureText = new String[nList.getLength()];
+                    StopDescription = new String[nList.getLength()];
+                    for (int i = 0; i < nList.getLength() - 1; i++) { //Only get the First Departure Time
                         Node nNode = nList.item(i);
                         if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                             Element eElement = (Element) nNode;
@@ -110,8 +111,7 @@ public class FavoriteDeparture extends Activity {
 
                     //Process Direction Results
                     adapter = new DeparturesList((Activity)ctx, DepartureText, StopDescription);
-                    ((TextView)findViewById(R.id.tvDepartureStopDescription)).setText(StopDescription[0]);
-                    ((TextView)findViewById(R.id.txtDepartureTime)).setText(DepartureText[0]);
+                    ((ListView)findViewById(R.id.lvAdditionalDepartures)).setAdapter(adapter);
                 }
 
             } catch (ParserConfigurationException e) {

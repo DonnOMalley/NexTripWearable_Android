@@ -273,9 +273,9 @@ public class Direction extends Activity {
                 NodeList nList = doc.getElementsByTagName("NexTripDeparture");
                 Log.d("NexTripWearable", Integer.toString(nList.getLength()));
                 if(nList.getLength() > 0) {
-                    DepartureText = new String[1];
-                    StopDescription = new String[1];
-                    for (int i = 0; i < 1; i++) { //Only get the First Departure Time
+                    DepartureText = new String[nList.getLength()];
+                    StopDescription = new String[nList.getLength()];
+                    for (int i = 0; i < nList.getLength(); i++) { //Only get the First Departure Time
                         Node nNode = nList.item(i);
                         if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                             Element eElement = (Element) nNode;

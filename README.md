@@ -10,6 +10,10 @@ Description
 
 Revisions:
 ----------
+- 1.1
+> Updated departure screens to show additional departure times
+> Added additional departures to data posted back to wearable client
+
 - 1.0
 > Initial Release
 

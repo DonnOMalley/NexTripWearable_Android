@@ -1,12 +1,21 @@
 package com.omalleyland.nextripwearable;
 
 import android.app.Activity;
-import android.app.ListFragment;
+import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -29,15 +38,66 @@ import javax.xml.parsers.ParserConfigurationException;
  * Activities containing this fragment MUST implement the {@link //Callbacks}
  * interface.
  */
-public class RoutesFragment extends ListFragment {
+public class RoutesFragment extends Fragment
+    implements Common.IPurchasesResult {
 
     private OnRouteSelectionListener mListener;
+    private AdView adView;
+    private Boolean AdViewVisible = false;
+    private ListView RouteListView;
+
+    public void ManageAdvertisements(View AView) {
+
+        final View view;
+        if(AView == null) {
+            view = getView();
+        }
+        else {
+            view = AView;
+        }
+
+        if(Common.ShowAds && !Common.PremiumMode && (AView != null)) {
+            adView = new AdView(view.getContext());
+            adView.setAdUnitId("ca-app-pub-3393887135508959/1184582426");
+
+            adView.setAdSize(AdSize.BANNER);
+            // Create an ad request.
+            AdRequest adRequest = new AdRequest.Builder().build();
+
+            // Start loading the ad in the background.
+            adView.loadAd(adRequest);
+
+            adView.setAdListener(new AdListener() {
+                public void onAdLoaded() {
+                    if (!AdViewVisible && !Common.PremiumMode && Common.ShowAds) {
+                        ((LinearLayout) view.findViewById(R.id.adViewLayoutRoutes)).addView(adView, 0);
+                        AdViewVisible = true;
+                    }
+                }
+
+                public void onAdLeftApplication() {
+                    if (AdViewVisible) {
+                        ((LinearLayout) view.findViewById(R.id.adViewLayoutRoutes)).removeView(adView);
+                        AdViewVisible = false;
+                    }
+                }
+            });
+        }
+        else {
+            if ((!Common.ShowAds || Common.PremiumMode) && AdViewVisible) {
+                ((LinearLayout) view.findViewById(R.id.adViewLayoutRoutes)).removeView(adView);
+                AdViewVisible = false;
+            }
+
+        }
+    }
+
+    public void ProcessPurchases() {
+        ManageAdvertisements(null);
+    }
 
     public static RoutesFragment newInstance() {
-        RoutesFragment fragment = new RoutesFragment();
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-        return fragment;
+        return new RoutesFragment();
     }
 
     /**
@@ -53,12 +113,29 @@ public class RoutesFragment extends ListFragment {
     ImageList adapter;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        /*
-            TODO : Read Local Database and identify which routes are saved as favorites
-         */
+    public void onCreate(Bundle savedInstanceState) {super.onCreate(savedInstanceState);}
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        final View view = inflater.inflate(R.layout.fragment_routes, container, false);
+
+        RouteListView = ((ListView)view.findViewById(R.id.lvRouteList));
+        RouteListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (null != mListener) {
+                    // Notify the active callbacks interface (the activity, if the
+                    // fragment is attached to one) that an item has been selected.
+                    mListener.onRouteSelection(routeId[position], routes[position]);
+                }
+            }
+        });
+
+        ManageAdvertisements(view);
+
+
+        return view;
     }
 
     @Override
@@ -67,6 +144,10 @@ public class RoutesFragment extends ListFragment {
         try {
             mListener = (OnRouteSelectionListener) activity;
             new RouteAPIRequest(getActivity().getApplicationContext()).execute(new String[]{"Routes"});
+
+
+
+
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -77,18 +158,6 @@ public class RoutesFragment extends ListFragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            mListener.onRouteSelection(routeId[position], routes[position]);
-        }
     }
 
     public void processResult(String result) {
@@ -126,7 +195,7 @@ public class RoutesFragment extends ListFragment {
                 if(getActivity() != null) {
                     adapter = new ImageList(getActivity(), routeId, routes, imageId);
                 }
-                setListAdapter(adapter);
+                RouteListView.setAdapter(adapter);
             }
 
         } catch (ParserConfigurationException e) {

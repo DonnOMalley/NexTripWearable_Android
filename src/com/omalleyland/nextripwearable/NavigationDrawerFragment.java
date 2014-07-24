@@ -96,17 +96,35 @@ public class NavigationDrawerFragment extends Fragment {
                 selectItem(position);
             }
         });
+
+        UpdateNavigation();
+
+        mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
+        return mDrawerListView;
+    }
+
+    public void UpdateNavigation() {
+        String[] NavOptions;
+
+        if(Common.EnableFavorites || Common.PremiumMode) {
+            NavOptions = new String[3];
+            NavOptions[0] = "Routes";
+            NavOptions[1] = "Search Stop ID";
+            NavOptions[2] = "Favorite Stops";
+        }
+        else {
+            NavOptions = new String[2];
+            NavOptions[0] = "Routes";
+            NavOptions[1] = "Search Stop ID";
+        }
         mDrawerListView.setAdapter(new ArrayAdapter<String>(
                 getActionBar().getThemedContext(),
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_section1),
-                        getString(R.string.title_section2),
-                        getString(R.string.title_section3),
-                }));
+                NavOptions));
+
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
-        return mDrawerListView;
+
     }
 
     public boolean isDrawerOpen() {
@@ -187,7 +205,7 @@ public class NavigationDrawerFragment extends Fragment {
         mDrawerLayout.setDrawerListener(mDrawerToggle);
     }
 
-    private void selectItem(int position) {
+    public void selectItem(int position) {
         mCurrentSelectedPosition = position;
         if (mDrawerListView != null) {
             mDrawerListView.setItemChecked(position, true);

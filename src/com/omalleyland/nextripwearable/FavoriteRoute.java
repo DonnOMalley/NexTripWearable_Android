@@ -7,9 +7,44 @@ public class FavoriteRoute {
     private int ID;
     private int ImageID;
     private String RouteID;
+    private String RouteDescription;
     private String DirectionID;
     private String DirectionText;
-    private String HttpParameters;
+    private String StopID;
+    private String StopDescription;
+    private int StopType;
+
+    public String getRouteDescription() {
+        return RouteDescription;
+    }
+
+    public void setRouteDescription(String routeDescription) {
+        RouteDescription = routeDescription;
+    }
+
+    public String getStopID() {
+        return StopID;
+    }
+
+    public void setStopID(String stopID) {
+        StopID = stopID;
+    }
+
+    public String getStopDescription() {
+        return StopDescription;
+    }
+
+    public void setStopDescription(String stopDescription) {
+        StopDescription = stopDescription;
+    }
+
+    public int getStopType() {
+        return StopType;
+    }
+
+    public void setStopType(int stopType) {
+        StopType = stopType;
+    }
 
     public int getID() {
         return ID;
@@ -49,14 +84,6 @@ public class FavoriteRoute {
 
     public void setDirectionText(String directionText) {
         DirectionText = directionText;
-    }
-
-    public String getHttpParameters() {
-        return HttpParameters;
-    }
-
-    public void setHttpParameters(String httpParameters) {
-        HttpParameters = httpParameters;
     }
 
     public FavoriteRoute() {

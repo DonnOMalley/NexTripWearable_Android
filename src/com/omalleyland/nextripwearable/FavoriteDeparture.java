@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
@@ -40,7 +39,6 @@ public class FavoriteDeparture extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.next_departure);
         SelectedRoute = new Route();
-
         SelectedRoute.LoadFromIntent(getIntent());
         LoadStopDepartures();
     }
@@ -49,7 +47,12 @@ public class FavoriteDeparture extends Activity {
         ringProgressDialog = ProgressDialog.show(this, "Please wait ...", "Loading Departures...", true);
         ringProgressDialog.setCancelable(true);
 
-        new DeparturesRequest(this).execute(SelectedRoute.getRouteID() + "/" + SelectedRoute.getDirectionID() + "/" + SelectedRoute.getStopID());
+        if(SelectedRoute.getType() == Common.STOP_TYPE_ROUTE) {
+            new DeparturesRequest(this).execute(SelectedRoute.getRouteID() + "/" + SelectedRoute.getDirectionID() + "/" + SelectedRoute.getStopID());
+        }
+        else {
+            new DeparturesRequest(this).execute(SelectedRoute.getStopID());
+        }
     }
     public class DeparturesRequest extends AsyncTask<String, Void, String> {
 

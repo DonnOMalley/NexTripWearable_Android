@@ -1,7 +1,9 @@
 package com.omalleyland.nextripwearable;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.Image;
 import android.os.AsyncTask;
@@ -9,7 +11,11 @@ import android.os.Bundle;
 import android.app.ListFragment;
 import android.util.Log;
 import android.view.View;
+import android.widget.Adapter;
+import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
@@ -69,10 +75,51 @@ public class FavoriteFragment extends ListFragment {
         super.onAttach(activity);
         try {
             mListener = (OnFavoriteSelectionListener) activity;
+
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                 + " must implement OnFragmentInteractionListener");
         }
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedState) {
+        super.onActivityCreated(savedState);
+        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                final Route FavoriteRoute = FavoriteRoutes.get(position);
+
+                //Add/Remove from favorites
+                AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+
+                builder.setTitle("Delete");
+                builder.setMessage("Delete Route From Favorites?");
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        new FavoriteRouteDBInterface(getActivity().getApplicationContext()).deleteFavorite(FavoriteRoute);
+                        new FavoriteRequest(getActivity().getApplicationContext()).execute();
+                    }
+
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Do nothing
+                        dialog.dismiss();
+                    }
+                });
+
+                AlertDialog alert = builder.create();
+                alert.show();
+                return true;
+            }
+        });
     }
 
     @Override
@@ -84,8 +131,6 @@ public class FavoriteFragment extends ListFragment {
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-//        super.onListItemClick(l, v, position, id);
-
         Intent intent = FavoriteRoutes.get(position).BuildIntent(getActivity().getApplicationContext(), FavoriteDeparture.class);
         startActivity(intent);
     }
@@ -131,16 +176,15 @@ public class FavoriteFragment extends ListFragment {
             FavoriteRoutes = Favorites;
 
             if(FavoriteRoutes.size() > 0) {
-
                 ImageID = new Integer[FavoriteRoutes.size()];
                 RouteID = new String[FavoriteRoutes.size()];
                 RouteDescription = new String[FavoriteRoutes.size()];
                 DirectionText = new String[FavoriteRoutes.size()];
                 for (int i = 0; i < FavoriteRoutes.size(); i++) {
-                    ImageID[i] = FavoriteRoutes.get(i).getImageID();
-                    RouteID[i] = FavoriteRoutes.get(i).getRouteID();
-                    RouteDescription[i] = FavoriteRoutes.get(i).getStopDescription();
                     DirectionText[i] = FavoriteRoutes.get(i).getDirectionText();
+                    ImageID[i] = FavoriteRoutes.get(i).getImageID();
+                    RouteDescription[i] = FavoriteRoutes.get(i).getStopDescription();
+                    RouteID[i] = FavoriteRoutes.get(i).getRouteID();
 
                     if(getActivity() != null) {
                         adapter = new FavoriteList(getActivity(), ImageID, RouteID, RouteDescription, DirectionText);

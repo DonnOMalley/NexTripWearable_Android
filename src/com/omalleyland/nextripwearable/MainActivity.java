@@ -2,6 +2,7 @@ package com.omalleyland.nextripwearable;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -35,7 +36,9 @@ import javax.xml.parsers.ParserConfigurationException;
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks,
                     RoutesFragment.OnRouteSelectionListener,
-                    FavoriteFragment.OnFavoriteSelectionListener{
+                    FavoriteFragment.OnFavoriteSelectionListener,
+                    Common.IPurchasesResult
+{
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -50,9 +53,19 @@ public class MainActivity extends Activity
     private CharSequence mTitle;
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Common.CleanupInAppPurchasing();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Common.InitInAppPurchasing(getBaseContext(), this);
         ActiveRoute = new Route();
+
+        Common.LoadPreferences();
+
         setContentView(R.layout.activity_main);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)getFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -61,7 +74,14 @@ public class MainActivity extends Activity
         mTitle = getString(R.string.title_section1);
 
         // Set up the drawer.
+
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        if(Common.EnableFavorites || Common.PremiumMode) {
+            mNavigationDrawerFragment.selectItem(2);
+            onNavigationDrawerItemSelected(2);
+            restoreActionBar();
+        }
     }
 
     @Override
@@ -73,19 +93,19 @@ public class MainActivity extends Activity
             case 0:
                 mTitle = getString(R.string.title_section1);
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, FavoriteFragment.newInstance())
+                        .replace(R.id.container, RoutesFragment.newInstance(), Common.ROUTE_FRAGMENT_TAG)
                         .commit();
                 break;
             case 1:
                 mTitle = getString(R.string.title_section2);
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, RoutesFragment.newInstance())
+                        .replace(R.id.container, SearchStops.newInstance(), Common.SEARCH_STOP_FRAGMENT_TAG)
                         .commit();
                 break;
             case 2:
                 mTitle = getString(R.string.title_section3);
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, SearchStops.newInstance())
+                        .replace(R.id.container, FavoriteFragment.newInstance(), Common.FAVORITE_FRAGMENT_TAG)
                         .commit();
                 break;
         }
@@ -103,13 +123,17 @@ public class MainActivity extends Activity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
-            // Only show items in the action bar relevant to this screen
-            // if the drawer is not showing. Otherwise, let the drawer
-            // decide what to show in the action bar.
-            getMenuInflater().inflate(R.menu.main, menu);
-            restoreActionBar();
-            return true;
+        if(menu != null) {
+            if (!mNavigationDrawerFragment.isDrawerOpen()) {
+                // Only show items in the action bar relevant to this screen
+                // if the drawer is not showing. Otherwise, let the drawer
+                // decide what to show in the action bar.
+                if (!Common.PremiumMode && (!Common.EnableFavorites || Common.ShowAds)) {
+                    getMenuInflater().inflate(R.menu.main, menu);
+                    restoreActionBar();
+                }
+                return true;
+            }
         }
         return super.onCreateOptionsMenu(menu);
     }
@@ -121,14 +145,38 @@ public class MainActivity extends Activity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            return true;
+
+            //Launch MyPurchases
+            Intent i = new Intent(this, MyPurchases.class);
+            startActivityForResult(i, Common.PURCHASES_REQUEST_CODE);
         }
         return super.onOptionsItemSelected(item);
     }
 
-    public void onFavoriteSelection(String RouteID, String RouteText, String DirectionID) {
+    @Override
+    public void ProcessPurchases() {
+        mNavigationDrawerFragment.UpdateNavigation();
 
+        //Refresh things
+        Fragment routeFragment = getFragmentManager().findFragmentByTag(Common.ROUTE_FRAGMENT_TAG);
+        Fragment stopFragment = getFragmentManager().findFragmentByTag(Common.SEARCH_STOP_FRAGMENT_TAG);
+
+        if(routeFragment != null) {
+            ((Common.IPurchasesResult)routeFragment).ProcessPurchases();
+        }
+        if(stopFragment != null) {
+            ((Common.IPurchasesResult)stopFragment).ProcessPurchases();
+        }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == Common.PURCHASES_REQUEST_CODE) {
+            ProcessPurchases();
+        }
+    }
+
+    public void onFavoriteSelection(String RouteID, String RouteText, String DirectionID) { }
 
     public void onRouteSelection(String RouteID, String RouteText) {//, String DirectionID) {
         ringProgressDialog = ProgressDialog.show(this, "Please wait ...", "Loading Directions...", true);
@@ -138,7 +186,6 @@ public class MainActivity extends Activity
         ActiveRoute.setRouteDescription(RouteText);
 
         new DirectionRequest(this, ActiveRoute).execute("Directions/" + RouteID);
-//        new DirectionRequest(this, ActiveRoute).execute(new String[]{"Directions/" + RouteID});
     }
 
     public class DirectionRequest extends AsyncTask<String, Void, String> {
@@ -226,5 +273,4 @@ public class MainActivity extends Activity
             }
         }
     }
-
 }

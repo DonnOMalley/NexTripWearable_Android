@@ -1,9 +1,11 @@
 package com.omalleyland.nextripwearable;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +14,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
@@ -43,11 +53,64 @@ import javax.xml.parsers.ParserConfigurationException;
  * create an instance of this fragment.
  *
  */
-public class SearchStops extends Fragment {
+public class SearchStops extends Fragment
+        implements Common.IPurchasesResult {
 
     private ProgressDialog ringProgressDialog;
 
     private ListView GlobalResults;
+    private AdView adView;
+    private Boolean AdViewVisible = false;
+
+    public void ManageAdvertisements(View AView) {
+
+        final View view;
+        if(AView == null) {
+            view = getView();
+        }
+        else {
+            view = AView;
+        }
+
+        if(Common.ShowAds && !Common.PremiumMode) {
+            adView = new AdView(view.getContext());
+            adView.setAdUnitId("ca-app-pub-3393887135508959/1184582426");
+
+            adView.setAdSize(AdSize.BANNER);
+            // Create an ad request.
+            AdRequest adRequest = new AdRequest.Builder().build();
+
+            // Start loading the ad in the background.
+            adView.loadAd(adRequest);
+
+            adView.setAdListener(new AdListener() {
+                public void onAdLoaded() {
+                    if (!AdViewVisible && !Common.PremiumMode && Common.ShowAds) {
+                        ((LinearLayout) view.findViewById(R.id.adViewLayoutSearch)).addView(adView, 0);
+                        AdViewVisible = true;
+                    }
+                }
+
+                public void onAdLeftApplication() {
+                    if (AdViewVisible) {
+                        ((LinearLayout) view.findViewById(R.id.adViewLayoutSearch)).removeView(adView);
+                        AdViewVisible = false;
+                    }
+                }
+            });
+        }
+        else {
+            if ((!Common.ShowAds || Common.PremiumMode) && AdViewVisible) {
+                ((LinearLayout) view.findViewById(R.id.adViewLayoutSearch)).removeView(adView);
+                AdViewVisible = false;
+            }
+
+        }
+    }
+
+    public void ProcessPurchases() {
+        ManageAdvertisements(null);
+    }
 
     /**
      * Use this factory method to create a new instance of
@@ -56,9 +119,9 @@ public class SearchStops extends Fragment {
      * @return A new instance of fragment SearchStops.
      */
     public static SearchStops newInstance() {
-        SearchStops fragment = new SearchStops();
-        return fragment;
+        return  new SearchStops();
     }
+
     public SearchStops() {
         // Required empty public constructor
     }
@@ -74,7 +137,14 @@ public class SearchStops extends Fragment {
         View view = inflater.inflate(R.layout.fragment_search_stops, container, false);
         ImageButton imgBtn = (ImageButton) view.findViewById(R.id.btnSearch);
 
+        ManageAdvertisements(view);
+
         imgBtn.setOnClickListener(new SearchClickListener(view.getContext(), (EditText) view.findViewById(R.id.edtSearch), (ListView) view.findViewById(R.id.lvResults)));
+        if(Common.EnableFavorites || Common.PremiumMode) {
+            (view.findViewById(R.id.btnFavorite)).setOnClickListener(new FavoriteClickListener(view.getContext(), (EditText) view.findViewById(R.id.edtSearch)));
+        }
+        (view.findViewById(R.id.btnFavorite)).setVisibility(View.INVISIBLE);
+
         return view;
     }
 
@@ -86,6 +156,63 @@ public class SearchStops extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    public class FavoriteClickListener implements View.OnClickListener {
+
+        final private EditText edtStopID;
+        Context ctx;
+
+        public FavoriteClickListener(Context ctx, EditText edtStopID) {
+            this.ctx = ctx;
+            this.edtStopID = edtStopID;
+        }
+
+        @Override
+        public void onClick(View view) {
+            //Add/Remove from favorites
+            AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+
+            builder.setTitle("Favorites");
+            builder.setMessage("Add Route To Favorites?");
+            final EditText edtDescription = new EditText(ctx);
+            edtDescription.setHint("Description");
+            edtDescription.setTextSize(24);
+            edtDescription.setPadding(5,5,5,5);
+
+            builder.setView(edtDescription);
+            builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                public void onClick(DialogInterface dialog, int which) {
+                    if(edtDescription.getText().toString().length() > 0) {
+                        Route SelectedStop = new Route();
+                        SelectedStop.setImageID(R.drawable.ic_launcher);
+                        SelectedStop.setType(Common.STOP_TYPE_STOP_ID);
+                        SelectedStop.setStopID(edtStopID.getText().toString());
+                        SelectedStop.setRouteID(SelectedStop.getStopID());
+                        SelectedStop.setStopDescription(edtDescription.getText().toString());
+
+                        new FavoriteRouteDBInterface(ctx).addFavorite(SelectedStop);
+                    }
+                    else {
+                        Toast.makeText(ctx, "Must Enter a Description to Save Favorite", Toast.LENGTH_LONG).show();
+                    }
+                }
+
+            });
+
+            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // Do nothing
+                    dialog.dismiss();
+                }
+            });
+
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
     }
 
     public class SearchClickListener implements View.OnClickListener {
@@ -153,6 +280,9 @@ public class SearchStops extends Fragment {
                 NodeList nList = doc.getElementsByTagName("NexTripDeparture");
                 Log.d("NexTripWearable", Integer.toString(nList.getLength()));
                 if(nList.getLength() > 0) {
+                    if(Common.PremiumMode || Common.EnableFavorites) {
+                        (getView().findViewById(R.id.btnFavorite)).setVisibility(View.VISIBLE);
+                    }
                     String[] routes = new String[nList.getLength()];
                     String[] departures = new String[nList.getLength()];
                     String[] directions = new String[nList.getLength()];

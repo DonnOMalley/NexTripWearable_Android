@@ -14,10 +14,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
@@ -45,11 +51,41 @@ public class Direction extends Activity {
     private String[] DirectionIDs;
     private ProgressDialog ringProgressDialog;
     private Boolean DepartureTimeVisible = false;
+    private AdView adView;
+    private Boolean AdViewVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_direction);
+
+        if(Common.ShowAds && !Common.PremiumMode) {
+            adView = new AdView(this);
+            adView.setAdUnitId("ca-app-pub-3393887135508959/1184582426");
+            adView.setAdSize(AdSize.BANNER);
+
+            // Create an ad request.
+            AdRequest adRequest = new AdRequest.Builder().build();
+
+            // Start loading the ad in the background.
+            adView.loadAd(adRequest);
+
+            adView.setAdListener(new AdListener() {
+                public void onAdLoaded() {
+                    if (!AdViewVisible) {
+                        ((LinearLayout) findViewById(R.id.adViewLayoutNextDeparture)).addView(adView, 0);
+                        AdViewVisible = true;
+                    }
+                }
+
+                public void onAdLeftApplication() {
+                    if (AdViewVisible) {
+                        ((LinearLayout) findViewById(R.id.adViewLayoutNextDeparture)).removeView(adView);
+                        AdViewVisible = false;
+                    }
+                }
+            });
+        }
 
         ctx = this;
         Intent intent = getIntent();
@@ -166,7 +202,7 @@ public class Direction extends Activity {
                     ((ListView)findViewById(R.id.lvDirectionStops)).setOnItemLongClickListener(
                         new AdapterView.OnItemLongClickListener() {
                             public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) {
-                                if(!DepartureTimeVisible) {
+                                if(!DepartureTimeVisible && (Common.EnableFavorites || Common.PremiumMode)) {
                                     Log.v("long clicked", "pos: " + pos);
                                     final int PosID = pos;
 
@@ -308,7 +344,9 @@ public class Direction extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.direction, menu);
+        if (!Common.PremiumMode && (!Common.EnableFavorites || Common.ShowAds)) {
+            getMenuInflater().inflate(R.menu.direction, menu);
+        }
         return true;
     }
 
@@ -319,8 +357,35 @@ public class Direction extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            return true;
+            Intent i = new Intent(this, MyPurchases.class);
+            startActivity(i);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (adView != null) {
+            adView.resume();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (adView != null) {
+            adView.pause();
+        }
+        super.onPause();
+    }
+
+    /** Called before the activity is destroyed. */
+    @Override
+    public void onDestroy() {
+        // Destroy the AdView.
+        if (adView != null) {
+            adView.destroy();
+        }
+        super.onDestroy();
     }
 }

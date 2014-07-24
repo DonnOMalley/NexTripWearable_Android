@@ -17,7 +17,7 @@ public class ImageList extends ArrayAdapter<String>{
     private final Integer[] imageId;
     public ImageList(Activity context,
                      String[] routeId, String[] route, Integer[] imageId) {
-        super(context, R.layout.fragment_routes, route);
+        super(context, R.layout.route_list_item, route);
         this.context = context;
         this.routeId = routeId;
         this.route = route;
@@ -26,7 +26,7 @@ public class ImageList extends ArrayAdapter<String>{
     @Override
     public View getView(int position, View view, ViewGroup parent) {
         LayoutInflater inflater = context.getLayoutInflater();
-        View rowView= inflater.inflate(R.layout.fragment_routes, null, true);
+        View rowView= inflater.inflate(R.layout.route_list_item, null, true);
         TextView txtRouteID = (TextView)rowView.findViewById(R.id.tvRouteFragRouteId);
         TextView txtTitle = (TextView) rowView.findViewById(R.id.tvRouteFragDescription);
         ImageView imageView = (ImageView) rowView.findViewById(R.id.imgRouteFragIcon);

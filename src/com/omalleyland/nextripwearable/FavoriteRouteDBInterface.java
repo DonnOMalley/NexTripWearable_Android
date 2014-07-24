@@ -40,6 +40,7 @@ public class FavoriteRouteDBInterface {
             FavoriteRoute.setDirectionText(cursor.getString(Common.colFAVORITES_DIRECTION_TEXT_INDEX));
             FavoriteRoute.setStopID(cursor.getString(Common.colFAVORITES_STOP_ID_INDEX));
             FavoriteRoute.setStopDescription(cursor.getString(Common.colFAVORITES_STOP_DESCRIPTION_INDEX));
+            FavoriteRoute.setType(cursor.getInt(Common.colFAVORITES_TYPE_INDEX));
         }
         catch (Exception e) {
             Log.e(className, "FavoriteRouteDBInterface.cursorToRoute :: " + e.getMessage());
@@ -66,7 +67,8 @@ public class FavoriteRouteDBInterface {
                     ", Direction ID = " + FavoriteRoute.getDirectionID() +
                     ", Direction Text = " + FavoriteRoute.getDirectionText() +
                     ", Stop ID= " + FavoriteRoute.getStopID() +
-                    ", Stop Description= " + FavoriteRoute.getStopDescription());
+                    ", Stop Description= " + FavoriteRoute.getStopDescription() +
+                    ", Type = " + Integer.toString(FavoriteRoute.getType()));
             try {
                 db = dbHelper.getWritableDatabase();
                 ContentValues values = new ContentValues();
@@ -77,6 +79,7 @@ public class FavoriteRouteDBInterface {
                 values.put(Common.colFAVORITES_DIRECTION_TEXT, FavoriteRoute.getDirectionText());
                 values.put(Common.colFAVORITES_STOP_ID, FavoriteRoute.getStopID());
                 values.put(Common.colFAVORITES_STOP_DESCRIPTION, FavoriteRoute.getStopDescription());
+                values.put(Common.colFAVORITES_TYPE, FavoriteRoute.getType());
                 Log.v(className, "Inserting into Favorites Table");
                 insertId = db.insert(Common.tblFAVORITES, null, values);
             }
@@ -104,7 +107,8 @@ public class FavoriteRouteDBInterface {
                     ", Direction ID = " + FavoriteRoute.getDirectionID() +
                     ", Direction Text = " + FavoriteRoute.getDirectionText() +
                     ", Stop ID= " + FavoriteRoute.getStopID() +
-                    ", Stop Description= " + FavoriteRoute.getStopDescription());
+                    ", Stop Description= " + FavoriteRoute.getStopDescription() +
+                    ", Type = " + Integer.toString(FavoriteRoute.getType()));
             try {
                 db = dbHelper.getWritableDatabase();
                 Log.v(className, "Performing Delete From Favorites Table");
@@ -131,7 +135,7 @@ public class FavoriteRouteDBInterface {
 
     public List<Route> getAllFavorites() {
         SQLiteDatabase db;
-        List<Route> FavoriteLIst = new ArrayList<Route>();
+        List<Route> FavoriteList = new ArrayList<Route>();
         Route FavoriteRoute;
         Log.v(className, "Querying List of All Favorites");
         try {
@@ -141,7 +145,7 @@ public class FavoriteRouteDBInterface {
             if(cursor.moveToFirst()) {
                 do {
                     FavoriteRoute = cursorToRoute(cursor);
-                    FavoriteLIst.add(FavoriteRoute);
+                    FavoriteList.add(FavoriteRoute);
                     Log.d(className, "Favorite Record Returned :: " +
                             "Image ID = " + Integer.toString(FavoriteRoute.getImageID()) +
                             ", Route ID = " + FavoriteRoute.getRouteID() +
@@ -149,16 +153,17 @@ public class FavoriteRouteDBInterface {
                             ", Direction ID = " + FavoriteRoute.getDirectionID() +
                             ", Direction Text = " + FavoriteRoute.getDirectionText() +
                             ", Stop ID= " + FavoriteRoute.getStopID() +
-                            ", Stop Description= " + FavoriteRoute.getStopDescription());
+                            ", Stop Description= " + FavoriteRoute.getStopDescription() +
+                            ", Type = " + Integer.toString(FavoriteRoute.getType()));
                 } while (cursor.moveToNext());
             }
-            Log.d(className, "Favorite List Populated :: Size = " + Integer.toString(FavoriteLIst.size()));
+            Log.d(className, "Favorite List Populated :: Size = " + Integer.toString(FavoriteList.size()));
         }
         catch (Exception e) {
             Log.e(className, "Exception Querying Favorite List:: " + e.getMessage());
         }
         dbHelper.close();
-        return FavoriteLIst;
+        return FavoriteList;
     }
 
 }

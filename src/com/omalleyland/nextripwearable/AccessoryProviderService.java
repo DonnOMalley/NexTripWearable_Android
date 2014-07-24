@@ -10,7 +10,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -22,15 +21,11 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
-import android.text.format.Time;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.samsung.android.sdk.SsdkUnsupportedException;
@@ -203,13 +198,18 @@ public class AccessoryProviderService extends SAAgent {
                     RouteDescription[i] = FavoriteRoutes.get(i).getStopDescription();
                     DirectionText[i] = FavoriteRoutes.get(i).getDirectionText();
                     XMLString = XMLString + "<Route><RouteDescription>" + RouteID[i] + " " + RouteDescription[i] + " " + DirectionText[i] + 
-                    						"</RouteDescription><Departure>" + 
-                    						RouteID[i] + "/" + FavoriteRoutes.get(i).getDirectionID() + "/" + FavoriteRoutes.get(i).getStopID() + 
-                    						"</Departure></Route>";
+                    						"</RouteDescription><Departure>";
+                    if(FavoriteRoutes.get(i).getType() == Common.STOP_TYPE_ROUTE) {
+                        XMLString = XMLString + RouteID[i] + "/" + FavoriteRoutes.get(i).getDirectionID() + "/";
+                    }
+
+                    XMLString = XMLString + FavoriteRoutes.get(i).getStopID();
+
+                    XMLString = XMLString + "</Departure></Route>";
                 }
                 XMLString = XMLString + "</Favorites>";
-                
-                
+
+                Log.d("NexTripWearable", XMLString);
                 final String txt=XMLString;
 
 				final AccessoryProviderConnection uHandler = mConnectionsMap.get(Integer.parseInt(String.valueOf(ConnID)));

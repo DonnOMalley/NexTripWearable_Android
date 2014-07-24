@@ -14,6 +14,7 @@ public class Route {
     private String DirectionText;
     private String StopID;
     private String StopDescription;
+    private int Type;
 
     public int getImageID() {
         return ImageID;
@@ -71,6 +72,14 @@ public class Route {
         StopDescription = stopDescription;
     }
 
+    public int getType() {
+        return Type;
+    }
+
+    public void setType(int type) {
+        Type = type;
+    }
+
     private void InitializeDefaults() {
         this.ImageID = -1;
         this.RouteID = "";
@@ -79,12 +88,13 @@ public class Route {
         this.DirectionText = "";
         this.StopID = "";
         this.StopDescription = "";
+        this.Type = Common.STOP_TYPE_ROUTE;
     }
     public Route() {
         InitializeDefaults();
     }
 
-    public Route(int ImageID, String RouteID, String RouteDescription, String DirectionID, String DirectionText, String StopID, String StopDescription) {
+    public Route(int ImageID, String RouteID, String RouteDescription, String DirectionID, String DirectionText, String StopID, String StopDescription, int Type) {
         this.ImageID = ImageID;
         this.RouteID = RouteID;
         this.RouteDescription = RouteDescription;
@@ -92,6 +102,7 @@ public class Route {
         this.DirectionText = DirectionText;
         this.StopID = StopID;
         this.StopDescription = StopDescription;
+        this.Type = Type;
     }
 
     public Intent BuildIntent(Context ctx, Class<?> cls) {
@@ -104,6 +115,7 @@ public class Route {
         intent.putExtra("DirectionText", this.DirectionText);
         intent.putExtra("StopID", this.StopID);
         intent.putExtra("StopDescription", this.StopDescription);
+        intent.putExtra("Type", this.Type);
 
         return intent;
     }
@@ -116,7 +128,6 @@ public class Route {
         this.DirectionText = intent.getStringExtra("DirectionText");
         this.StopID = intent.getStringExtra("StopID");
         this.StopDescription = intent.getStringExtra("StopDescription");
-
-
+        this.Type = intent.getIntExtra("Type", Common.STOP_TYPE_ROUTE);
     }
 }
